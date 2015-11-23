@@ -34,6 +34,7 @@ setup(name='ofxstatement-germany-1822direkt',
           'ofxstatement':
           [
               'germany_1822direkt = ofxstatement.plugins.germany_1822direkt:FrankfurterSparkasse1822Plugin',
+              'germany_berliner_sparkasse = ofxstatement.plugins.germany_berliner_sparkasse:BerlinerSparkassePlugin',
               'germany_postbank = ofxstatement.plugins.germany_postbank:PostbankXMLPlugin'
           ]
           },
