@@ -40,7 +40,7 @@ class BerlinerSparkasseParser(CsvStatementParser):
     # * CSV-CAMT with 17 columns
 
     mt940_mappings = {"accid": 0,
-                      "date": 2,  # valuta date
+                      "date": 1,
                       "btext": 3,
                       "payee": 5,
                       "toaccid": 6,
@@ -49,7 +49,7 @@ class BerlinerSparkasseParser(CsvStatementParser):
                       "currency": 9}
 
     camt_mappings = {"accid": 0,
-                     "date": 2,  # valuta date
+                     "date": 1,
                      "btext": 3,
                      "payee": 11,
                      "toaccid": 12,

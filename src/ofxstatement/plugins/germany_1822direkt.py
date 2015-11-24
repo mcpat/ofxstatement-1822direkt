@@ -47,7 +47,7 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
 
         sl = StatementLine()
         sl.id = line[1]
-        sl.date = self.parse_datetime(line[3])  # using the valuta date here
+        sl.date = self.parse_datetime(line[2])
         sl.amount = self.parse_float(line[4])
         sl.trntype = TMAPPINGS.get(line[5], 'DEBIT' if sl.amount < 0 else 'CREDIT')
         sl.payee = line[7]

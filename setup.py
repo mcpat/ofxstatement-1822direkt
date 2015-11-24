@@ -35,7 +35,8 @@ setup(name='ofxstatement-germany-1822direkt',
           [
               'germany_1822direkt = ofxstatement.plugins.germany_1822direkt:FrankfurterSparkasse1822Plugin',
               'germany_berliner_sparkasse = ofxstatement.plugins.germany_berliner_sparkasse:BerlinerSparkassePlugin',
-              'germany_postbank = ofxstatement.plugins.germany_postbank:PostbankXMLPlugin'
+              'germany_postbank = ofxstatement.plugins.germany_postbank:PostbankXMLPlugin',
+              'germany_volksbank_goeppingen = ofxstatement.plugins.germany_volksbank_goeppingen:VolksbankGoeppingenPlugin'
           ]
           },
       install_requires=['ofxstatement'],
