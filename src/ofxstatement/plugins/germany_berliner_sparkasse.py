@@ -2,7 +2,7 @@ import csv
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.plugin import Plugin
 from ofxstatement.statement import BankAccount, StatementLine, \
-    generate_stable_transaction_id
+    generate_stable_transaction_id, recalculate_balance
 import re
 
 
@@ -171,3 +171,8 @@ class BerlinerSparkasseParser(CsvStatementParser):
         # we need to generate an ID because nothing is given
         sl.id = generate_stable_transaction_id(sl)
         return sl
+
+    def parse(self):
+        super().parse()
+        recalculate_balance(self.statement)
+        return self.statement

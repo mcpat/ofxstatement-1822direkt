@@ -1,6 +1,7 @@
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser
-from ofxstatement.statement import BankAccount, StatementLine
+from ofxstatement.statement import BankAccount, StatementLine,\
+    recalculate_balance
 
 TMAPPINGS = {
     "20005": "CASH",
@@ -60,3 +61,8 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
             sl.bank_account_to = BankAccount(line[9], line[8])
 
         return sl
+
+    def parse(self):
+        super().parse()
+        recalculate_balance(self.statement)
+        return self.statement
