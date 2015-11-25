@@ -26,7 +26,6 @@ class VolksbankGoeppingenPlugin(Plugin):
         encoding = self.settings.get('charset', 'iso-8859-1')
         f = open(filename, 'r', encoding=encoding)
         parser = VolksbankGoeppingenParser(f)
-        # parser.statement.bank_id = self.settings.get('bank', '10050000')
         parser.statement.currency = self.settings.get('currency', 'EUR')
         return parser
 
@@ -79,8 +78,8 @@ class VolksbankGoeppingenParser(CsvStatementParser):
                                                 m.start(), m.end())
 
         # replaces newlines with spaces in the remaining text
-        info["memo"] = l[0] + ": " + escaped_text.replace(NEWLINE_ESCAPE, " ")
-        print(info)
+        info["memo"] = "%s: %s" % (l[0],
+                                   escaped_text.replace(NEWLINE_ESCAPE, " "))
         return info
 
     def parse_record(self, line):
@@ -109,6 +108,7 @@ class VolksbankGoeppingenParser(CsvStatementParser):
 
         sl = StatementLine()
         sl.date = self.parse_datetime(line[0])
+        sl.date_avail = self.parse_datetime(line[1])
 
         # Note: amount has no sign. We need to guess it later...
         sl.amount = self.parse_float(line[11])

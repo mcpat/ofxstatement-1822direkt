@@ -31,9 +31,8 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
         return float(f.replace('.', '').replace(',', '.'))
 
     def parse_record(self, line):
-        # FIXME: add header validation
-        #print(self.cur_record, line)
-        if self.cur_record < 2:
+        if line[0] == "Kontonummer":
+            # it's the table header
             return None
 
         if len(line) < 3:
@@ -48,10 +47,13 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
         sl = StatementLine()
         sl.id = line[1]
         sl.date = self.parse_datetime(line[2])
+        sl.date_avail = self.parse_datetime(line[3])
         sl.amount = self.parse_float(line[4])
-        sl.trntype = TMAPPINGS.get(line[5], 'DEBIT' if sl.amount < 0 else 'CREDIT')
+        sl.trntype = TMAPPINGS.get(line[5],
+                                   'DEBIT' if sl.amount < 0 else 'CREDIT')
         sl.payee = line[7]
-        sl.memo = " ".join(x for x in line[15:33] if len(x) > 0)
+        sl.memo = "%s: %s" % (line[6],
+                              " ".join(x for x in line[15:33] if len(x) > 0))
 
         if len(line[8]) > 0 and len(line[9]) > 0:
             # additional bank information if present

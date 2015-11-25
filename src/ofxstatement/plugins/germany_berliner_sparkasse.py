@@ -41,6 +41,7 @@ class BerlinerSparkasseParser(CsvStatementParser):
 
     mt940_mappings = {"accid": 0,
                       "date": 1,
+                      "valdate": 2,
                       "btext": 3,
                       "payee": 5,
                       "toaccid": 6,
@@ -50,6 +51,7 @@ class BerlinerSparkasseParser(CsvStatementParser):
 
     camt_mappings = {"accid": 0,
                      "date": 1,
+                     "valdate": 2,
                      "btext": 3,
                      "payee": 11,
                      "toaccid": 12,
@@ -141,6 +143,7 @@ class BerlinerSparkasseParser(CsvStatementParser):
 
         sl = StatementLine()
         sl.date = self.parse_datetime(line[m["date"]])
+        sl.date_avail = self.parse_datetime(line[m["valdate"]])
         sl.amount = self.parse_float(line[m["amount"]])
         sl.trntype = self.parse_transaction_type(sl.amount,
                                                  line[m["btext"]])
@@ -162,7 +165,8 @@ class BerlinerSparkasseParser(CsvStatementParser):
 
         info = parse_info(line)
         # remove additional spaces in the memo
-        sl.memo = re.sub(' +', ' ', info["memo"].strip())
+        sl.memo = "%s: %s" % (line[m["btext"]],
+                              re.sub(' +', ' ', info["memo"].strip()))
 
         # we need to generate an ID because nothing is given
         sl.id = generate_stable_transaction_id(sl)
