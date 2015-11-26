@@ -152,16 +152,20 @@ class BerlinerSparkasseParser(CsvStatementParser):
         line[m["toaccid"]] = line[m["toaccid"]].lstrip('0')
 
         if len(line[m["toaccid"]]) > 0 and len(line[m["tobankid"]]) > 0:
-            # additional bank information if present
-            sl.bank_account_to = BankAccount(line[m["tobankid"]],
-                                             line[m["toaccid"]])
+            # additional bank information is present
+            splitted = self.parse_iban(line[m["toaccid"]])
+            if splitted:
+                sl.bank_account_to = BankAccount(**splitted)
+            else:
+                sl.bank_account_to = BankAccount(line[m["tobankid"]],
+                                                 line[m["toaccid"]])
 
         if line[m["currency"]] != self.statement.currency:
             # different currency is used
             sl.currency = line[m["currency"]]
 
         # remove additional spaces in the payee
-        sl.payee = re.sub(' +', ' ', line[m["payee"]])
+        sl.payee = re.sub(' +', ' ', line[m["payee"]])[:32]
 
         info = parse_info(line)
         # remove additional spaces in the memo

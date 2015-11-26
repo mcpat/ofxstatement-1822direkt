@@ -2,7 +2,7 @@ import csv
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.plugin import Plugin
 from ofxstatement.statement import BankAccount, StatementLine, \
-    generate_stable_transaction_id
+    generate_stable_transaction_id, check_balance
 import re
 
 NEWLINE_ESCAPE = ";"
@@ -119,15 +119,14 @@ class VolksbankGoeppingenParser(CsvStatementParser):
 
         if "iban" in info:
             # additional bank information if present
-            sl.bank_account_to = BankAccount(info["bic"],
-                                             info["iban"])
+            sl.bank_account_to = BankAccount(**self.parse_iban(info["iban"]))
 
         if line[10] != self.statement.currency:
             # different currency is used
             sl.currency = line[10]
 
         # remove additional spaces in the payee
-        sl.payee = re.sub(' +', ' ', line[3].replace("\n", " ").strip())
+        sl.payee = re.sub(' +', ' ', line[3].replace("\n", " ").strip())[:32]
 
         # remove additional spaces in the memo
         sl.memo = re.sub(' +', ' ', info["memo"].strip())
@@ -135,6 +134,12 @@ class VolksbankGoeppingenParser(CsvStatementParser):
         # we need to generate an ID because nothing is given
         sl.id = generate_stable_transaction_id(sl)
         return sl
+
+    def parse(self):
+        super().parse()
+        assert check_balance(self.statement), \
+            "Could not guess all transaction directions correctly!"
+        return self.statement
 
 
 def remove_matched(text, escaped_text, start, end):

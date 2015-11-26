@@ -57,8 +57,12 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
                               " ".join(x for x in line[15:33] if len(x) > 0))
 
         if len(line[8]) > 0 and len(line[9]) > 0:
-            # additional bank information if present
-            sl.bank_account_to = BankAccount(line[9], line[8])
+            # additional bank information is present
+            splitted = self.parse_iban(line[8])
+            if splitted:
+                sl.bank_account_to = BankAccount(**splitted)
+            else:
+                sl.bank_account_to = BankAccount(line[9], line[8])
 
         return sl
 
