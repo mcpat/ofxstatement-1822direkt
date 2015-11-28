@@ -52,7 +52,7 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
         sl.amount = self.parse_float(line[4])
         sl.trntype = TMAPPINGS.get(line[5],
                                    'DEBIT' if sl.amount < 0 else 'CREDIT')
-        sl.payee = line[7]
+        sl.payee = line[7][:32]
         sl.memo = "%s: %s" % (line[6],
                               " ".join(x for x in line[15:33] if len(x) > 0))
 
