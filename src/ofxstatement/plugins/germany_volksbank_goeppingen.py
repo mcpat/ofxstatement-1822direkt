@@ -15,9 +15,10 @@ TMAPPINGS = {
     "SEPA-Basislastschr.": (-1, "DIRECTDEBIT"),
     "Überweisungsgutschr.": (1, "XFER"),
     "SEPA-Überweisung": (-1, "XFER"),
-    # "ENTGELTABSCHLUSS": "FEE",
+    "Abschluss": (1, "INT"),
     "Dauerauftrag": (-1, "REPEATPMT"),
-    "Gewinnsparen": (-1, "DEBIT")
+    "Gewinnsparen": (-1, "DEBIT"),
+    "Lohn/Gehalt/Rente": (1, "XFER")
 }
 
 
