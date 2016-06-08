@@ -1,3 +1,5 @@
+import csv
+
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.statement import BankAccount, StatementLine,\
@@ -26,6 +28,9 @@ class FrankfurterSparkasse1822Plugin(Plugin):
 
 class FrankfurterSparkasse1822Parser(CsvStatementParser):
     date_format = "%d.%m.%Y"
+
+    def split_records(self):
+        return csv.reader(self.fin, delimiter=';')
 
     def parse_float(self, f):
         # convert a number in german localization (e.g. 1.234,56) into a float
