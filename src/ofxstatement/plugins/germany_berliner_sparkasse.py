@@ -142,8 +142,11 @@ class BerlinerSparkasseParser(CsvStatementParser):
             self.statement.account_id = line[m["accid"]]
 
         sl = StatementLine()
-        sl.date = self.parse_datetime(line[m["date"]])
         sl.date_avail = self.parse_datetime(line[m["valdate"]])
+        if len(line[m["date"]]) > 0:
+            sl.date = self.parse_datetime(line[m["date"]])
+        else
+            sl.date = sl.date_avail
         sl.amount = self.parse_float(line[m["amount"]])
         sl.trntype = self.parse_transaction_type(sl.amount,
                                                  line[m["btext"]])

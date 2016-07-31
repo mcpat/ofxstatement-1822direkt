@@ -59,7 +59,7 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
                                    'DEBIT' if sl.amount < 0 else 'CREDIT')
         sl.payee = line[7][:32]
         sl.memo = "%s: %s" % (line[6],
-                              " ".join(x for x in line[15:33] if len(x) > 0))
+                              " ".join(x for x in line[13:31] if len(x) > 0))
 
         if len(line[8]) > 0 and len(line[9]) > 0:
             # additional bank information is present
