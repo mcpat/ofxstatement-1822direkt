@@ -11,14 +11,16 @@ IBAN_BIC = re.compile("IBAN:\s*([^\s]*)\s*BIC:\s*([^\s]*)")
 EREF_MREF_CRED = re.compile("EREF:\s*(.*)\s*MREF:\s*(.*)\s*CRED:\s*(.*)")
 
 TMAPPINGS = {
-    "SB-Auszahlung": (-1, "CASH"),
-    "SEPA-Basislastschr.": (-1, "DIRECTDEBIT"),
-    "Überweisungsgutschr.": (1, "XFER"),
-    "SEPA-Überweisung": (-1, "XFER"),
-    "Abschluss": (1, "INT"),
-    "Dauerauftrag": (-1, "REPEATPMT"),
-    "Gewinnsparen": (-1, "DEBIT"),
-    "Lohn/Gehalt/Rente": (1, "XFER")
+    "SB-Auszahlung": "CASH",
+    "SEPA-Basislastschr.": "DIRECTDEBIT",
+    "Überweisungsgutschr.": "XFER",
+    "SEPA-Überweisung": "XFER",
+    "Abschluss": "INT",
+    "Dauerauftrag": "REPEATPMT",
+    "Gewinnsparen": "DEBIT",
+    "Lohn/Gehalt/Rente": "XFER",
+    "SB-Einzahlung": "ATM",
+    "Kartennutzung": "XFER"
 }
 
 
@@ -41,15 +43,12 @@ class VolksbankGoeppingenParser(CsvStatementParser):
         # convert a number in german localization (e.g. 1.234,56) into a float
         return float(f.replace('.', '').replace(',', '.'))
 
-    def parse_transaction_info(self, line):
+    def parse_transaction_info(self, amount, line):
         l = line[8].split("\n")  # get rid of the newlines
         info = dict()
 
-        tm = TMAPPINGS.get(l[0], None)
-        if tm is None:
-            raise ValueError("cannot determine transfer direction '%r'" % line)
-
-        info["sign"], info["ttype"] = tm
+        info["ttype"] = TMAPPINGS.get(l[0],
+                                      'DEBIT' if amount < 0 else 'CREDIT')
 
         # mark positions where newlines were
         escaped_text = NEWLINE_ESCAPE.join(l[1:])
@@ -111,11 +110,11 @@ class VolksbankGoeppingenParser(CsvStatementParser):
         sl.date = self.parse_datetime(line[0])
         sl.date_avail = self.parse_datetime(line[1])
 
-        # Note: amount has no sign. We need to guess it later...
+        # Note: amount has no sign. We need to check column 12 for 'S' or 'H'
         sl.amount = self.parse_float(line[11])
+        sl.amount *= 1 if line[12].strip() in ["H", "h"] else -1
 
-        info = self.parse_transaction_info(line)
-        sl.amount *= info["sign"]
+        info = self.parse_transaction_info(sl.amount, line)
         sl.trntype = info["ttype"]
 
         if "iban" in info:

@@ -64,9 +64,9 @@ class BerlinerSparkasseParser(CsvStatementParser):
     def split_records(self):
         return csv.reader(self.fin, delimiter=";")
 
-    def parse_float(self, f):
+    def parse_decimal(self, f):
         # convert a number in german localization (e.g. 1.234,56) into a float
-        return float(f.replace('.', '').replace(',', '.'))
+        return super().parse_decimal(f.replace('.', '').replace(',', '.'))
 
     def parse_transaction_type(self, amount, text):
         for pattern, ttype in TMAPPINGS.items():
@@ -145,9 +145,9 @@ class BerlinerSparkasseParser(CsvStatementParser):
         sl.date_avail = self.parse_datetime(line[m["valdate"]])
         if len(line[m["date"]]) > 0:
             sl.date = self.parse_datetime(line[m["date"]])
-        else
+        else:
             sl.date = sl.date_avail
-        sl.amount = self.parse_float(line[m["amount"]])
+        sl.amount = self.parse_decimal(line[m["amount"]])
         sl.trntype = self.parse_transaction_type(sl.amount,
                                                  line[m["btext"]])
 

@@ -1,5 +1,6 @@
 import csv
 
+from decimal import Decimal as D
 from ofxstatement.plugin import Plugin
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.statement import BankAccount, StatementLine,\
@@ -11,7 +12,7 @@ TMAPPINGS = {
     "20080": "PAYMENT",
     "20200": "DIRECTDEBIT",
     "21050": "XFER",
-    "21094": "XFER",
+    "21094": "REPEATPMT",
     "25100": "FEE"
 }
 
@@ -32,9 +33,9 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
     def split_records(self):
         return csv.reader(self.fin, delimiter=';')
 
-    def parse_float(self, f):
+    def parse_decimal(self, f):
         # convert a number in german localization (e.g. 1.234,56) into a float
-        return float(f.replace('.', '').replace(',', '.'))
+        return super().parse_decimal(f.replace('.', '').replace(',', '.'))
 
     def parse_record(self, line):
         if line[0] == "Kontonummer":
@@ -53,8 +54,11 @@ class FrankfurterSparkasse1822Parser(CsvStatementParser):
         sl = StatementLine()
         sl.id = line[1]
         sl.date = self.parse_datetime(line[2])
-        sl.date_avail = self.parse_datetime(line[3])
-        sl.amount = self.parse_float(line[4])
+        if line[3]:
+            sl.date_avail = self.parse_datetime(line[3])
+        else:
+            sl.date_avail = sl.date
+        sl.amount = self.parse_decimal(line[4])
         sl.trntype = TMAPPINGS.get(line[5],
                                    'DEBIT' if sl.amount < 0 else 'CREDIT')
         sl.payee = line[7][:32]
