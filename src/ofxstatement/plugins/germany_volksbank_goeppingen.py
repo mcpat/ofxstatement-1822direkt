@@ -45,13 +45,16 @@ class VolksbankGoeppingenParser(CsvStatementParser):
 
     def parse_transaction_info(self, amount, line):
         l = line[8].split("\n")  # get rid of the newlines
+        # add whitespace where required
+        for idx in range(1, len(l)):
+            if len(l[idx]) < 37:
+                l[idx] += " "
+
         info = dict()
 
         info["ttype"] = TMAPPINGS.get(l[0],
                                       'DEBIT' if amount < 0 else 'CREDIT')
 
-        # mark positions where newlines were
-        escaped_text = NEWLINE_ESCAPE.join(l[1:])
         # remove newlines for regex matching
         text = "".join(l[1:])
 
@@ -59,27 +62,24 @@ class VolksbankGoeppingenParser(CsvStatementParser):
         m = ABWA.search(text)
         if m is not None:
             info["altpayee"] = m.group(1).strip()
-            text, escaped_text = remove_matched(text, escaped_text,
-                                                m.start(), m.end())
+            text = text[:m.start()] + text[m.end():]
 
         m = IBAN_BIC.search(text)
         if m is not None:
             info["iban"] = m.group(1)
             info["bic"] = m.group(2)
-            text, escaped_text = remove_matched(text, escaped_text,
-                                                m.start(), m.end())
+            text = text[:m.start()] + text[m.end():]
 
         m = EREF_MREF_CRED.search(text)
         if m is not None:
             info["eref"] = m.group(1).strip()
             info["mref"] = m.group(2).strip()
             info["cred"] = m.group(3).strip()
-            text, escaped_text = remove_matched(text, escaped_text,
-                                                m.start(), m.end())
+            text = text[:m.start()] + text[m.end():]
 
         # replaces newlines with spaces in the remaining text
-        info["memo"] = "%s: %s" % (l[0],
-                                   escaped_text.replace(NEWLINE_ESCAPE, " "))
+        info["memo"] = "%s: %s" % (l[0], text)
+
         return info
 
     def parse_record(self, line):
@@ -140,27 +140,3 @@ class VolksbankGoeppingenParser(CsvStatementParser):
         assert check_balance(self.statement), \
             "Could not guess all transaction directions correctly!"
         return self.statement
-
-
-def remove_matched(text, escaped_text, start, end):
-    estart = start
-    idx = start
-    eidx = start
-
-    while idx < end and eidx < len(escaped_text):
-        # search the string in the escaped_text
-        if escaped_text[eidx] == text[idx]:
-            eidx += 1
-            idx += 1
-        elif escaped_text[eidx] == NEWLINE_ESCAPE:
-            eidx += 1
-        else:
-            # mismatch: we need to move start position
-            idx = start
-            eidx += 1
-            estart = eidx
-
-    assert idx == end, "%s - %s [%d,%d)" % (text, escaped_text, start, end)
-
-    return (text[:start] + text[end:],
-            escaped_text[:estart] + escaped_text[eidx:])
