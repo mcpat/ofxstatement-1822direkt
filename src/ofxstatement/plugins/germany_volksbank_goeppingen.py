@@ -82,7 +82,17 @@ class VolksbankGoeppingenParser(CsvStatementParser):
 
         return info
 
+    def sanitize_line(self, line):
+        # remove trailing empty columns
+        idx = -1
+        for i in range(len(line)):
+            if len(line[i]) > 0:
+                idx = i
+
+        return line[:idx+1]
+
     def parse_record(self, line):
+        line = self.sanitize_line(line)
         if len(line) < 5:
             return None
         elif len(line) < 12:
@@ -95,12 +105,16 @@ class VolksbankGoeppingenParser(CsvStatementParser):
             return None
 
         if line[9] == "Anfangssaldo":
+            # Note: amount has no sign. We need to check column 12 for 'S' or 'H'
             self.statement.start_date = self.parse_datetime(line[0])
             self.statement.start_balance = self.parse_float(line[11])
+            self.statement.start_balance *= 1 if line[12].strip() in ["H", "h"] else -1
             return None
         elif line[9] == "Endsaldo":
+            # Note: amount has no sign. We need to check column 12 for 'S' or 'H'
             self.statement.end_date = self.parse_datetime(line[0])
             self.statement.end_balance = self.parse_float(line[11])
+            self.statement.end_balance *= 1 if line[12].strip() in ["H", "h"] else -1
             return None
         elif line[0] == "Buchungstag":
             # it's the table header
@@ -133,6 +147,7 @@ class VolksbankGoeppingenParser(CsvStatementParser):
 
         # we need to generate an ID because nothing is given
         sl.id = generate_stable_transaction_id(sl)
+        print(sl)
         return sl
 
     def parse(self):
